@@ -12,7 +12,7 @@ def client_send():
     clientSocket = socket(AF_INET, SOCK_DGRAM)
 
     message = 'ping'
-    path = '/Users/huilinzhang/Desktop/ECS_152A/data.txt'
+    path = './data.txt'
     totalSize = 1300000
 
     data_file = open(path, 'a')
@@ -22,7 +22,7 @@ def client_send():
     clientSocket.settimeout(30)
     now = time.time()
     while(size <= totalSize):
-        modifiedMessage, serverAddress = clientSocket.recvfrom(2048)
+        modifiedMessage, serverAddress = clientSocket.recvfrom(4096)
 
         data_file.write(modifiedMessage.decode())
         data_file.flush()

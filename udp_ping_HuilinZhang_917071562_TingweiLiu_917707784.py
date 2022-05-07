@@ -7,7 +7,7 @@ import statistics
 
 def client_send():
     serverName = '173.230.149.18'
-    serverPort = 5006
+    serverPort = 12000
     timeout_seconds = 10.0
     rtt_list = []
     succeed_count = 0
@@ -19,7 +19,7 @@ def client_send():
     clientSocket.sendto(message.encode(),(serverName, serverPort))
     print("here")
     modifiedMessage, serverAddress = clientSocket.recvfrom(4096)
-    print(modifiedMessage)
+    # print(modifiedMessage)
     
     for i in range(0,10):
         now = time.time()
@@ -28,20 +28,20 @@ def client_send():
         timeout_count = 0
 
         clientSocket.sendto(message.encode(),(serverName, serverPort))
-        print("here")
+        # print("here")
         modifiedMessage, serverAddress = clientSocket.recvfrom(4096)
         # print(modifiedMessage)
         # 丢包
-        # while(modifiedMessage.decode() != 'Hello World!'):
-        #     print("not pint!")
-        #     if(time.time()-now >= timeout_seconds):
-        #         print("time out!")
-        #         inner_timeout = inner_timeout * math.pow(2,timeout_count)+random.uniform(0,1)
-        #         inner_now = time.time()
-        #         while(time.time()-inner_now <= inner_timeout):
-        #             pass
-        #         timeout_count += 1
-        #     modifiedMessage, serverAddress = clientSocket.recvfrom(2048)
+        while(modifiedMessage.decode() != 'PING'):
+            print("not pint!")
+            if(time.time()-now >= timeout_seconds):
+                print("time out!")
+                inner_timeout = inner_timeout * math.pow(2,timeout_count)+random.uniform(0,1)
+                inner_now = time.time()
+                while(time.time()-inner_now <= inner_timeout):
+                    pass
+                timeout_count += 1
+            modifiedMessage, serverAddress = clientSocket.recvfrom(2048)
             
         if(modifiedMessage.decode() == 'PING'):
             succeed_count += 1
