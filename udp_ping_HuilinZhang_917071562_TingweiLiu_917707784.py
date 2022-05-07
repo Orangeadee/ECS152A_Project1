@@ -13,18 +13,11 @@ def client_send():
     succeed_count = 0
 
     clientSocket = socket(AF_INET, SOCK_DGRAM)
-
     message = 'ping'
-
-    clientSocket.sendto(message.encode(),(serverName, serverPort))
-    # print("here")
-    # modifiedMessage, serverAddress = clientSocket.recvfrom(4096)
-    # print(modifiedMessage)
-    
+        
     for i in range(0,10):
         now = time.time()
         timeout_count = 0
-
         try:
             clientSocket.sendto(message.encode(),(serverName, serverPort))
             modifiedMessage, serverAddress = clientSocket.recvfrom(4096)

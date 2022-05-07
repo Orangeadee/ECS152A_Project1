@@ -32,7 +32,6 @@ def client_send():
         percentage = os.path.getsize(path) / totalSize * 100
         print("received %: ", int(percentage))
         size = os.path.getsize(path)
-        # print(size)
     now = time.time() - now
     print("break")
     print("Time elapsed: {} seconds".format(now))
@@ -40,16 +39,6 @@ def client_send():
     print("Throughput: {} bps".format(throu))
     print("Size of file is {} bites".format(size))
     print("File Downloaded")
-    # print(size)
-    # data_file.write("hello")
-    # data_file.flush()
-    # os.fsync(data_file.fileno())
-
-    # data_file.write("hello")
-    # data_file.flush()
-    # os.fsync(data_file.fileno())
-    # size = os.path.getsize(path)
-    # print(size)
 
 
 
