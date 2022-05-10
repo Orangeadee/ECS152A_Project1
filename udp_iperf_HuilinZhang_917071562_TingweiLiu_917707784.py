@@ -8,7 +8,7 @@ import os
 def client_send():
     # Given server Name and Port Number.
     serverName = '173.230.149.18'
-    serverPort = 5006
+    serverPort = 5005
 
     # Connect socket with udp protocal.
     clientSocket = socket(AF_INET, SOCK_DGRAM)

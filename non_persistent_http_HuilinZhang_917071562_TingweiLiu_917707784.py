@@ -1,99 +1,103 @@
-from pydoc import cli
 from socket import *
 from html.parser import HTMLParser
 from bs4 import BeautifulSoup
 from PIL import Image
+from pydoc import cli
 import PIL
 import time
-import statistics
 import requests
-
-# class MyParse(HTMLParser):
-#     def handle_starttag(self, tag, attrs):
-#         if tag=="img":
-#             print(dict(attrs)["src"])
+import statistics
 
 def request_server():
+    # Given server Name and Port Number.
     serverName = '173.230.149.18'
     serverPort = 23662
-
+    # Data is for storing the entire html from get request and write to local html file.
     data = ''
     try:
+        # ==================== GET HTML File ===================== #
+        # Start connecting the socket to the server.
         clientSocket = socket(AF_INET, SOCK_STREAM)
         clientSocket.connect((serverName, serverPort))
 
         get_request = "GET /ecs152a.html HTTP/1.1\r\nX-Client-project:project-152A-part2\r\n\r\n"
+        # Start counting the time when sending the get request to server.
         now = time.time()
         clientSocket.sendall(get_request.encode())
+        # - img_data is to store all image data for further usage.
+        # - PLT represents the page load time.
+        # - ATF represents above the fold page load time.
+        # - avg_Rd = average request delay.
         img_data = b''
         PLT = 0
         ATF = 0
         avg_Rd = []
+        # Continuously receiving from server until reach the end.
         while(True):
+            # Receive message with buffer size of 4096.
             response = clientSocket.recv(4096)
+            # time.time() - now = time it takes to receive one message.
             avg_Rd.append(time.time() - now)
+            # Temporary store all response in img_data and parse later.
             img_data += response
             data += str(response, "utf-8")
+            # The initial page stops at the list named 'Pantry'.
+            # So above the fold should stop there since it's the first page load.
             if b'Pantry' in response:
                 ATF = time.time() - now
-            if(response == b''):
+            # If response is empty, then we reach the end and will exit the loop.
+            if response == b'':
                 PLT = time.time() - now
                 break
 
-        # load data
+        # ================= Loading Data To Local File ================== #
         path = './ecs152a.html'
         data_file = open(path, 'w')
         data_file.write(data)
-
         data_file.close()
         clientSocket.close()
 
-        page = open("./ecs152a.html").read()
-        print("================")
+        # ==================== Parse HTML File ===================== #
+        # Use BeautifulSoup to parse image data.
+        # The variable 'img_data' that stored all the html data earlier
+        # will be used here.
         parsed_img_data = BeautifulSoup(img_data, 'html.parser')
         images = parsed_img_data.find_all('img', src=True)
 
-        print('Number of Images: ', len(images))
         image_src = [x['src'] for x in images]
         image_src = [x for x in image_src if x.endswith('.jpg')]
-        #print('Number of Images: ', len(image_src))
+        # Link_img will store the first 3 images that are links.
+        # Then remove the first 3 images in image_src.
         link_img = image_src[0:3]
         image_src = image_src[3:]
-        print('Number of Images: ', len(image_src))
-        #image_count = 1
-
 
         # ==================== Link Image ===================== #
-
         number = 0
+        # Downloading the first 3 pictures first by using request.
         for img in link_img:
+            # Increment number by 1 once an image is looped.
             number += 1
-            print(img)
+            # Path is the location for us to download the images.
             path = './images/img{}.png'.format(number)
             clientSocket = socket(AF_INET, SOCK_STREAM)
             clientSocket.connect((serverName, serverPort))
+            # Getting request and response from links.
             now = time.time()
-            r = requests.get(img,stream = True)
+            response = requests.get(img,stream = True)
             avg_Rd.append(time.time()-now)
             clientSocket.close()
-            if r.status_code == 200:
+            # If the server response with code 200, means request succeed.
+            # Then write the image to desired image file.
+            if response.status_code == 200:
                 with open(path,'wb') as f:
-                    for chunk in r:
+                    for chunk in response:
                         f.write(chunk)
 
-
-        print("================")
-        # ==================== Save Image ===================== #
-        # clientSocket = socket(AF_INET, SOCK_STREAM)
-        # clientSocket.connect((serverName, serverPort))
+        # ==================== Save Images ===================== #
+        # Number is 4 because we already downloaded 3 images above.
         number = 4
-
-        
+        # Getting the rest of the images in image_src.
         for image in image_src:
-            # try:
-            #     clientSocket.setblocking(False)
-            # except:
-            #     print('non-block error:', Exception)
             clientSocket = socket(AF_INET, SOCK_STREAM)
             clientSocket.connect((serverName, serverPort))
             get_request = "GET /{} HTTP/1.1\r\nX-Client-project:project-152A-part2\r\n\r\n".format(image)
@@ -102,25 +106,24 @@ def request_server():
             savedImageData = b''
             while (True):
                 res = clientSocket.recv(4096)
+                # Calculating the request delay.
+                # Reset the variable now for next calculation.
                 avg_Rd.append(time.time() - now)
                 now = time.time()
                 savedImageData += res
                 if(not res):
                     break
-            # print(savedImageData)
             
             headers =  savedImageData.split(b'\r\n\r\n')[0]
             saved_image = savedImageData[len(headers)+4:]
             img_path = './images/img{}.png'.format(number)
-            # print(number)
-            # print(saved_image)
+            # Increment number by 1 for the next image path.
             number += 1
-            # print(saved_image)
+            # Open the saving image file with overwrite permission.
             f = open(img_path, 'wb')
             f.write(saved_image)
             f.close()
-            # if (number == 3):
-            #     break
+            # Close the socket when done one iteration.
             clientSocket.close()
 
         # ==================== Compute Result ===================== #
@@ -129,12 +132,14 @@ def request_server():
         print("Total PLT = ", PLT)
         print("Average Request Delay = ", statistics.mean(avg_Rd))
         print("ATF PLT = ", ATF)
-        RPS = 339/sum(avg_Rd)
+        # Requests Per Second = Total requests / Total time spend.
+        # Total request = 339 because 338 for images and 1 for the html file.
+        RPS = 339 / sum(avg_Rd)
         print("RPS = ", RPS)
         print("******************************************************")            
 
     except Exception as ex:
-        print("error: ",ex)
+        print("Error: ",ex)
 
 
 def main():
