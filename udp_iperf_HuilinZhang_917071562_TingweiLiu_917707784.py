@@ -8,7 +8,7 @@ import os
 def client_send():
     # Given server Name and Port Number.
     serverName = '173.230.149.18'
-    serverPort = 5005
+    serverPort = 5006
 
     # Connect socket with udp protocal.
     clientSocket = socket(AF_INET, SOCK_DGRAM)
@@ -34,7 +34,7 @@ def client_send():
     # Hence, we decide to set timeout to 30 seconds.
     clientSocket.settimeout(30)
     now = time.time()
-    while(size <= totalSize):
+    while(size < totalSize):
         # Receive message from the server and write the message to the data file.
         modifiedMessage, serverAddress = clientSocket.recvfrom(4096)
         data_file.write(modifiedMessage.decode())
