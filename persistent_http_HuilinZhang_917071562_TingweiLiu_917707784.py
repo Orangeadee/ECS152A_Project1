@@ -54,7 +54,7 @@ def request_server():
                 break
 
         # ================= Loading Data To Local File ================== #
-        path = './ecs152a.html'
+        path = './ecs152a_HuilinZhang_917071562_TingweiLiu_917707784.html'
         data_file = open(path, 'w')
         data_file.write(data)
         data_file.close()
